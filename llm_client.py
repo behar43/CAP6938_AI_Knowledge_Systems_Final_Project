@@ -9,7 +9,7 @@ MODEL = "qwen3:4b"
 #Send a prompt to the locally hosted LLM.
 #Returns:
 #    str: The model's response.
-def ask_llm(prompt):
+def ask_llm(prompt, json_mode=False):
     payload = {
         "model": MODEL,
         "messages": [
@@ -18,6 +18,8 @@ def ask_llm(prompt):
         "stream": False,
         "think": False
     }
+    if json_mode:
+        payload["format"] = "json"
 
     response = requests.post(
         OLLAMA_URL,
