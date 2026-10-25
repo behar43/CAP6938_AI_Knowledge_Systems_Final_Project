@@ -6,6 +6,7 @@ from restaurant_search import search_restaurants
 from restaurant_analysis import analyze_restaurant
 from semantic_retrieval import SemanticReviewSearch
 from restaurant_ranking import rank_restaurants
+from analysis_cache import make_cache_key, load_cached_analysis, save_cached_analysis
 
 #Interpret a customer request and select restaurant candidates.
 #Returns:
@@ -45,10 +46,67 @@ def find_restaurants(
         "shortlist": shortlist
     }
 
+#Analyze shortlisted restaurants using semantic retrieval and caching.
+def analyze_candidates(
+    agent_result,
+    reviews_by_business,
+    review_limit=2,
+    preference_queries=None
+):
+
+    preferences = agent_result["criteria"]["preferences"]
+
+    if preference_queries is None:
+        preference_queries = {
+            preference: preference
+            for preference in preferences
+        }
+
+    semantic_search = None
+    results = []
+
+    for business in agent_result["shortlist"]:
+
+        cache_key = make_cache_key(
+            business_id=business["business_id"],
+            preferences=preferences,
+            preference_queries=preference_queries,
+            review_limit=review_limit
+        )
+
+        cached_analysis = load_cached_analysis(cache_key)
+
+        if cached_analysis is not None:
+
+            print(f"Cache hit: {business['name']}")
+            results.append(cached_analysis)
+            continue
+
+        print(f"Analyzing: {business['name']}")
+
+        #Only load the embedding model when an analysis is needed.
+        if semantic_search is None:
+            semantic_search = SemanticReviewSearch()
+
+        analysis = analyze_restaurant(
+            business,
+            reviews_by_business,
+            preferences,
+            review_limit=review_limit,
+            semantic_search=semantic_search,
+            preference_queries=preference_queries
+        )
+
+        save_cached_analysis(cache_key, analysis)
+
+        results.append(analysis)
+
+    return results
+
 #Analyze shortlisted restaurants using semantic review retrieval.
 #Returns:
 #    list: Restaurant analyses containing review evidence and scores.
-def analyze_candidates(
+def analyze_candidates_old(
     agent_result,
     reviews_by_business,
     review_limit=2,
