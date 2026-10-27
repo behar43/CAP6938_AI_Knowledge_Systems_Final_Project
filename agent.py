@@ -7,6 +7,7 @@ from restaurant_analysis import analyze_restaurant
 from semantic_retrieval import SemanticReviewSearch
 from restaurant_ranking import rank_restaurants
 from analysis_cache import make_cache_key, load_cached_analysis, save_cached_analysis
+from agent_decision import decide_next_action
 
 #Interpret a customer request and select restaurant candidates.
 #Returns:
@@ -43,7 +44,8 @@ def find_restaurants(
         "criteria": criteria,
         "candidate_count": len(candidates),
         "eligible_count": len(eligible),
-        "shortlist": shortlist
+        "shortlist": shortlist,
+        "eligible_candidates": eligible
     }
 
 #Analyze shortlisted restaurants using semantic retrieval and caching.
@@ -163,5 +165,80 @@ def recommend_candidates(
         "candidate_count": agent_result["candidate_count"],
         "eligible_count": agent_result["eligible_count"],
         "recommendations": ranked
+    }
+
+#Run a bounded LLM-driven restaurant recommendation loop.
+def run_agent(
+    agent_result,
+    reviews_by_business,
+    review_limit=1,
+    batch_size=3,
+    max_rounds=3
+):
+    preferences = agent_result["criteria"]["preferences"]
+    eligible = agent_result["eligible_candidates"]
+
+    analyses = []
+    decision_history = []
+    next_index = 0
+
+    for round_number in range(1, max_rounds + 1):
+
+        #Select restaurants not previously analyzed.
+        batch = eligible[next_index:next_index + batch_size]
+
+        if not batch:
+            break
+
+        print(f"\nAgent round {round_number}")
+        print(f"Analyzing {len(batch)} restaurants...")
+
+        #Reuse our existing analysis function with a temporary shortlist.
+        batch_result = {
+            **agent_result,
+            "shortlist": batch
+        }
+
+        batch_analyses = analyze_candidates(
+            batch_result,
+            reviews_by_business,
+            review_limit=review_limit
+        )
+
+        analyses.extend(batch_analyses)
+        next_index += len(batch)
+
+        #Rank all restaurants analyzed so far.
+        ranked = rank_restaurants(analyses, preferences)
+
+        #Ask the LLM whether more investigation is necessary.
+        decision = decide_next_action(
+            preferences=preferences,
+            ranked_restaurants=ranked,
+            remaining_candidates=len(eligible) - next_index,
+            rounds_completed=round_number,
+            max_rounds=max_rounds
+        )
+
+        decision_history.append({
+            "round": round_number,
+            "action": decision["action"],
+            "reason": decision["reason"]
+        })
+
+        print(f"Agent decision: {decision['action']}")
+        print(f"Reason: {decision['reason']}")
+
+        if decision["action"] == "finish":
+            break
+
+    return {
+        "request": agent_result["request"],
+        "criteria": agent_result["criteria"],
+        "candidate_count": agent_result["candidate_count"],
+        "eligible_count": agent_result["eligible_count"],
+        "recommendations": ranked if analyses else [],
+        "decision_history": decision_history,
+        "restaurants_analyzed": len(analyses)
     }
 

@@ -6,23 +6,37 @@ import json
 import time
 
 #Convert an alternate LLM response into the expected batch structure.
+#Convert alternate LLM responses into the expected batch structure.
 def normalize_batch_response(parsed, reviews):
-
-    if isinstance(parsed, dict) and isinstance(parsed.get("reviews"), list):
-        return parsed
 
     if not isinstance(parsed, dict):
         return parsed
 
     expected_ids = {review["review_id"] for review in reviews}
 
-    #Only normalize if the dictionary is indexed by review IDs.
-    if set(parsed) != expected_ids:
+    #Handle the standard structure containing a reviews list.
+    if isinstance(parsed.get("reviews"), list):
+        review_entries = parsed["reviews"]
+
+    #Handle the alternate structure indexed by review IDs.
+    elif set(parsed) == expected_ids:
+        review_entries = [
+            {"review_id": review_id, "results": results}
+            for review_id, results in parsed.items()
+        ]
+
+    else:
         return parsed
 
     normalized = []
 
-    for review_id, results in parsed.items():
+    for entry in review_entries:
+
+        if not isinstance(entry, dict):
+            return parsed
+
+        review_id = entry.get("review_id")
+        results = entry.get("results")
 
         if not isinstance(results, dict):
             return parsed
@@ -31,16 +45,25 @@ def normalize_batch_response(parsed, reviews):
 
         for preference, value in results.items():
 
-            if not isinstance(value, dict):
-                return parsed
+            #Handle classification returned as a plain string.
+            if isinstance(value, str):
+                normalized_results[preference] = {
+                    "classification": value.strip().lower(),
+                    "explanation": ""
+                }
 
-            normalized_results[preference] = {
-                "classification": value.get(
-                    "classification",
-                    value.get("status")
-                ),
-                "explanation": value.get("explanation")
-            }
+            #Handle classification returned as a dictionary.
+            elif isinstance(value, dict):
+                normalized_results[preference] = {
+                    "classification": value.get(
+                        "classification",
+                        value.get("status")
+                    ),
+                    "explanation": value.get("explanation")
+                }
+
+            else:
+                return parsed
 
         normalized.append({
             "review_id": review_id,
@@ -48,7 +71,6 @@ def normalize_batch_response(parsed, reviews):
         })
 
     return {"reviews": normalized}
-
 
 #Analyze whether a Yelp review supports a customer's preferences.
 #Returns:
