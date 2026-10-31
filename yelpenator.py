@@ -3,8 +3,7 @@
 
 from data_loader import load_restaurants
 from review_retrieval import load_reviews
-from agent import find_restaurants, recommend_candidates
-
+from agent import find_restaurants, run_agent
 
 #Display the ranked restaurant recommendations.
 def display_recommendations(result):
@@ -101,18 +100,38 @@ def main():
                 print("\nNo eligible restaurants found.")
                 continue
 
-            print("\nAnalyzing restaurant reviews...")
+#            print("\nAnalyzing restaurant reviews...")
+#
+#            result = recommend_candidates(
+#                agent_result,
+#                reviews_by_business,
+#                review_limit=1
+#            )
+#
+#            display_recommendations(result)
 
-            result = recommend_candidates(
+            print("\nStarting LLM-driven restaurant analysis...")
+            
+            result = run_agent(
                 agent_result,
                 reviews_by_business,
-                review_limit=1
+                review_limit=1,
+                batch_size=3,
+                max_rounds=2
             )
-
+            
             display_recommendations(result)
+
 
         except Exception as error:
             print(f"\nError: {error}")
+
+    print("\nAgent execution summary:")
+    print(f"Restaurants analyzed: {result['restaurants_analyzed']}")
+    
+    for decision in result["decision_history"]:
+        print(f"\nRound {decision['round']}: {decision['action']}")
+        print(f"Reason: {decision['reason']}")
 
 
 if __name__ == "__main__":
