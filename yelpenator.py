@@ -78,7 +78,7 @@ def main():
         print("\nEnter your restaurant request.")
         print("Type 'quit' to exit.")
 
-        user_request = input("\n> ").strip()
+        user_request = input("\nYelpenator-> ").strip()
 
         if user_request.lower() in ("quit", "exit", "q"):
             print("\nGoodbye!")
