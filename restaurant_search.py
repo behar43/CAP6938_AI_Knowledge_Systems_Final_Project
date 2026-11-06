@@ -4,6 +4,7 @@
 #Search restaurants using structured criteria.
 #Returns:
 #    list: Matching restaurant records, sorted by rating.
+
 def search_restaurants(restaurants, cuisine=None, min_stars=0.0, min_reviews=0):
     results = []
 
@@ -16,7 +17,21 @@ def search_restaurants(restaurants, cuisine=None, min_stars=0.0, min_reviews=0):
                 for category in (business.get("categories") or "").split(",")
             ]
 
-            if cuisine.strip().lower() not in categories:
+            requested_cuisine = cuisine.strip().lower()
+
+            if requested_cuisine == "american":
+                cuisine_match = any(
+                    category in {
+                        "american",
+                        "american (new)",
+                        "american (traditional)"
+                    }
+                    for category in categories
+                )
+            else:
+                cuisine_match = requested_cuisine in categories
+
+            if not cuisine_match:
                 continue
 
         # Check minimum star rating.
@@ -39,3 +54,4 @@ def search_restaurants(restaurants, cuisine=None, min_stars=0.0, min_reviews=0):
     )
 
     return results
+

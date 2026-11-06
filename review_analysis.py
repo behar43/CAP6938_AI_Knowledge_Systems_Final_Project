@@ -151,6 +151,66 @@ Example response:
 
     return json.loads(response)
 
+
+def build_review_batch_schema(reviews, preferences):
+
+    classification_schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["classification", "explanation"],
+        "properties": {
+            "classification": {
+                "type": "string",
+                "enum": [
+                    "positive",
+                    "negative",
+                    "mixed",
+                    "insufficient"
+                ]
+            },
+            "explanation": {
+                "type": "string"
+            }
+        }
+    }
+
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["reviews"],
+        "properties": {
+            "reviews": {
+                "type": "array",
+                "minItems": len(reviews),
+                "maxItems": len(reviews),
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["review_id", "results"],
+                    "properties": {
+                        "review_id": {
+                            "type": "string",
+                            "enum": [
+                                review["review_id"]
+                                for review in reviews
+                            ]
+                        },
+                        "results": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": list(preferences),
+                            "properties": {
+                                preference: classification_schema
+                                for preference in preferences
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
 #Analyze multiple reviews in a single LLM request.
 #Returns:
 #    list: Individual review analyses compatible with evidence aggregation.
@@ -219,7 +279,9 @@ Include every supplied review and every supplied preference.
 #    response = ask_llm(prompt)
 #    parsed = json.loads(response)
 
-    response = ask_llm(prompt, json_mode=True)
+#    response = ask_llm(prompt, json_mode=True)
+
+    response = ask_llm(prompt, json_schema=build_review_batch_schema(reviews, preferences), temperature=0)
     #Preserve the response for debugging if validation fails.
     with open("last_batch_response.json", "w", encoding="utf-8") as file:
         file.write(response)
