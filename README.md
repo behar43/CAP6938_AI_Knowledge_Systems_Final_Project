@@ -104,3 +104,33 @@ The application currently loads 2,967 Tampa restaurants from the processed datas
 A dedicated GPU is recommended for faster local language model inference, although the ability to run entirely on a CPU depends on the installed model, available system memory, and software configuration. Execution times may vary substantially between systems.
 
 An internet connection may be required for initial software and model downloads, but the recommendation workflow uses local dataset files and locally hosted model inference.
+
+### Ollama and Qwen3
+
+Yelpenator uses **Ollama** to run the Qwen3 language model locally. Ollama must be installed, and the `qwen3:4b` model must be available before launching the application.
+
+Download and install Ollama from:
+
+https://ollama.com/download
+
+Download the required language model:
+
+```cmd
+ollama pull qwen3:4b
+```
+
+Verify that the model is installed:
+
+```cmd
+ollama list
+```
+
+The output should include `qwen3:4b`.
+
+Ollama must be running when Yelpenator executes. On systems where the Ollama service is not already running, start it with:
+
+```cmd
+ollama serve
+```
+
+**Important:** Yelpenator is configured to use `qwen3:4b` directly. Installing a different Qwen3 variant without modifying the source code will not satisfy this requirement.
