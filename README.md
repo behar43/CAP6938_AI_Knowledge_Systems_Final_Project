@@ -49,31 +49,35 @@ The following components are required:
 4. **Qwen3 model** — The Ollama model used by Yelpenator must be downloaded before executing the application.
 5. **Yelp dataset files** — The processed Tampa restaurant and customer review files must be accessible at the paths expected by `yelpenator.py`.
 
-### Installing and Preparing Ollama
+### Ollama and Qwen3
 
-Install Ollama from:
+Yelpenator uses **Ollama** to run the Qwen3 language model locally. Ollama must be installed, and the `qwen3:4b` model must be available before launching the application.
+
+Download and install Ollama from:
 
 https://ollama.com/download
 
-After installation, download the required Qwen3 model:
+Download the required language model:
 
-```bash
-ollama pull qwen3
+```cmd
+ollama pull qwen3:4b
 ```
 
-Verify that the model is available:
+Verify that the model is installed:
 
-```bash
+```cmd
 ollama list
 ```
 
-Ensure that the Ollama service is running before launching Yelpenator. On systems where Ollama is not already running as a background service, start it using:
+The output should include `qwen3:4b`.
 
-```bash
+Ollama must be running when Yelpenator executes. On systems where the Ollama service is not already running, start it with:
+
+```cmd
 ollama serve
 ```
 
-The model name configured in Yelpenator must match the model installed in Ollama. If the project uses a specific Qwen3 model variant or tag, download that exact variant instead of the default.
+**Important:** Yelpenator is configured to use `qwen3:4b` directly. Installing a different Qwen3 variant without modifying the source code will not satisfy this requirement.
 
 ### Installing Python Dependencies
 
@@ -105,32 +109,4 @@ A dedicated GPU is recommended for faster local language model inference, althou
 
 An internet connection may be required for initial software and model downloads, but the recommendation workflow uses local dataset files and locally hosted model inference.
 
-### Ollama and Qwen3
 
-Yelpenator uses **Ollama** to run the Qwen3 language model locally. Ollama must be installed, and the `qwen3:4b` model must be available before launching the application.
-
-Download and install Ollama from:
-
-https://ollama.com/download
-
-Download the required language model:
-
-```cmd
-ollama pull qwen3:4b
-```
-
-Verify that the model is installed:
-
-```cmd
-ollama list
-```
-
-The output should include `qwen3:4b`.
-
-Ollama must be running when Yelpenator executes. On systems where the Ollama service is not already running, start it with:
-
-```cmd
-ollama serve
-```
-
-**Important:** Yelpenator is configured to use `qwen3:4b` directly. Installing a different Qwen3 variant without modifying the source code will not satisfy this requirement.
