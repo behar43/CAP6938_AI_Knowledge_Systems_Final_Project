@@ -56,6 +56,7 @@ def display_recommendations(result):
 #Run the command-line restaurant recommendation application.
 def main():
 
+    result = None
     print("=" * 60)
     print("YELP RESTAURANT RECOMMENDATION AGENT")
     print("=" * 60)
@@ -126,12 +127,15 @@ def main():
         except Exception as error:
             print(f"\nError: {error}")
 
-    print("\nAgent execution summary:")
-    print(f"Restaurants analyzed: {result['restaurants_analyzed']}")
-    
-    for decision in result["decision_history"]:
-        print(f"\nRound {decision['round']}: {decision['action']}")
-        print(f"Reason: {decision['reason']}")
+    if result is not None:
+        print("\nAgent execution summary:")
+        print(f"Restaurants analyzed: {result['restaurants_analyzed']}")
+        
+        for decision in result["decision_history"]:
+            print(f"\nRound {decision['round']}: {decision['action']}")
+            print(f"Reason: {decision['reason']}")
+    else:
+        print("\nNo restaurant analyses were completed.")
 
 
 if __name__ == "__main__":
