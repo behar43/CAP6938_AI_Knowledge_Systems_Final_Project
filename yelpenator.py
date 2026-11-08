@@ -77,7 +77,7 @@ def main():
     while True:
 
         print("\nEnter your restaurant request.")
-        print("Type 'quit' to exit.")
+        print("Type 'quit' or 'exit' or 'q' to exit.")
 
         user_request = input("\nYelpenator-> ").strip()
 
