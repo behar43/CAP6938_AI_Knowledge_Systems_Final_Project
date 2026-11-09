@@ -81,7 +81,7 @@ ollama serve
 
 ### Installing Python Dependencies
 
-From the project directory, if a `requirements.txt` file is included:
+From the project directory, using`requirements.txt` :
 
 ```bash
 python -m pip install -r requirements.txt
