@@ -44,7 +44,7 @@ Yelpenator runs locally using Python and Ollama. It does not require access to t
 The following components are required:
 
 1. **Python 3.10.4 or later** — Used to execute the application and its supporting modules.
-2. **Python dependencies** — Install the required packages, including PyTorch, Transformers, Sentence Transformers, FAISS, and other dependencies listed in `requirements.txt`, if provided.
+2. **Python dependencies** — Install the required packages, including PyTorch, Transformers, Sentence Transformers, FAISS, and other dependencies listed in `requirements.txt`.
 3. **Ollama** — Must be installed and running locally to provide language model inference.
 4. **Qwen3 model** — The Ollama model used by Yelpenator must be downloaded before executing the application.
 5. **Yelp dataset files** — The processed Tampa restaurant and customer review files must be accessible at the paths expected by `yelpenator.py`.
